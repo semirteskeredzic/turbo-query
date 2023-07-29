@@ -15,7 +15,6 @@ export class ApiProxy {
    // const body = 
     const searchParams = new URLSearchParams(`api-version=6.0`);
     searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
-    console.log('proj',this.#config.project);
     this.#config.project?.map((proj) => {
     return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
@@ -24,6 +23,7 @@ export class ApiProxy {
     })
       .then(this.#safeParseJson)
       .then((result) => {
+        console.log('res1', result);
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
     })
@@ -36,7 +36,7 @@ export class ApiProxy {
     //});
     const searchParams = new URLSearchParams(`api-version=6.0`);
     searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
-    console.log('proj',this.#config.project)
+    console.log('config', this.#config);
     this.#config.project?.map((proj) => {
       return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
@@ -44,6 +44,7 @@ export class ApiProxy {
       body: JSON.stringify({ query: getRootQuery({ rootAreaPath: proj, isDeleted: true }) }),
     }).then(this.#safeParseJson)
     .then((result) => {
+      console.log('res2', result);
       return (result.workItems as { id: number }[]).map((item) => item.id);
     });
     })
@@ -51,14 +52,15 @@ export class ApiProxy {
       
   }
 
-  async getWorkItemTypes(): Promise<WorkItemType[]> {
+  async getWorkItemTypes(): Promise<any> {
     const patHeader = getPatHeader(this.#config);
 
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
+    await Promise.all(this.#config.project.map(async (proj) => {
+      return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
       headers: { ...patHeader },
-    })
-      .then(this.#safeParseJson)
-      .then((result: CollectionResponse<WorkItemType>) => result.value);
+    }).then(this.#safeParseJson)
+    .then((result: CollectionResponse<WorkItemType>) => result.value);
+    }))
   }
 
   async getWorkItems(fields: string[], ids: number[]): Promise<any> {
