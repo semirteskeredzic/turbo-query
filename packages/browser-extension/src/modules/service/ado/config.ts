@@ -30,6 +30,8 @@ export function normalizeAreaPath(areaPath: string): string {
     .join("\\");
 }
 
-function getProjectFromAreaPath(areaPath: string): string {
-  return areaPath.split("\\")[0] ?? "";
+function getProjectFromAreaPath(areaPath: string): Array<string> {
+  let splittedAreaPath = areaPath.split(";");
+  return splittedAreaPath.map(spAP => spAP.trim())
+  // return areaPath.split("\\")[0] ?? "";
 }

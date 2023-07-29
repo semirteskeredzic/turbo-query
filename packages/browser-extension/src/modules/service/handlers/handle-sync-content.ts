@@ -69,7 +69,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncConten
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Fetching ids..." });
   const allIds = await api.getSinglePageWorkItemIds();
   const idPages = getPages(allIds);
-  server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds.length} items, ${idPages.length} pages` });
+  server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds?.length} items, ${idPages?.length} pages` });
 
   let progress = 0;
   const pages = await Promise.all(

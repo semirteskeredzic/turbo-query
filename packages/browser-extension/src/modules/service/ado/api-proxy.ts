@@ -10,40 +10,45 @@ export class ApiProxy {
     this.#config = config;
   }
 
-  async getSinglePageDeletedWorkItemIds(params?: QueryParams): Promise<number[]> {
+  async getSinglePageDeletedWorkItemIds(params?: QueryParams): Promise<any> {
     const patHeader = getPatHeader(this.#config);
-    const body = JSON.stringify({ query: getRootQuery({ rootAreaPath: this.#config.areaPath, isDeleted: true }) });
+   // const body = 
     const searchParams = new URLSearchParams(`api-version=6.0`);
     searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
-
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
+    console.log('proj',this.#config.project);
+    this.#config.project?.map((proj) => {
+    return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
       headers: { ...patHeader, "Content-Type": "application/json" },
-      body,
+      body: JSON.stringify({ query: getRootQuery({ rootAreaPath: proj, isDeleted: true }) }),
     })
       .then(this.#safeParseJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
+    })
   }
 
-  async getSinglePageWorkItemIds(params?: QueryParams): Promise<number[]> {
+  async getSinglePageWorkItemIds(params?: QueryParams): Promise<any> {
     const patHeader = getPatHeader(this.#config);
-    const body = JSON.stringify({
-      query: getRootQuery({ rootAreaPath: this.#config.areaPath }),
-    });
+    //const body = JSON.stringify({
+    //  query: getRootQuery({ rootAreaPath: this.#config.areaPath }),
+    //});
     const searchParams = new URLSearchParams(`api-version=6.0`);
     searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
-
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
+    console.log('proj',this.#config.project)
+    this.#config.project?.map((proj) => {
+      return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
       headers: { ...patHeader, "Content-Type": "application/json" },
-      body,
+      body: JSON.stringify({ query: getRootQuery({ rootAreaPath: proj, isDeleted: true }) }),
+    }).then(this.#safeParseJson)
+    .then((result) => {
+      return (result.workItems as { id: number }[]).map((item) => item.id);
+    });
     })
-      .then(this.#safeParseJson)
-      .then((result) => {
-        return (result.workItems as { id: number }[]).map((item) => item.id);
-      });
+    
+      
   }
 
   async getWorkItemTypes(): Promise<WorkItemType[]> {
@@ -56,22 +61,20 @@ export class ApiProxy {
       .then((result: CollectionResponse<WorkItemType>) => result.value);
   }
 
-  async getWorkItems(fields: string[], ids: number[]): Promise<WorkItem[]> {
+  async getWorkItems(fields: string[], ids: number[]): Promise<any> {
     const patHeader = getPatHeader(this.#config);
 
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemsbatch?api-version=6.0`, {
-      method: "post",
-      headers: { ...patHeader, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ids,
-        fields,
-      }),
-    })
-      .then(this.#safeParseJson)
-      .then((result: CollectionResponse<WorkItem>) => {
+    await Promise.all(this.#config.project.map(async (proj) => {
+      return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/workitemsbatch?api-version=6.0`, {
+        method: "post",
+        headers: { ...patHeader, "Content-Type": "application/json"},
+        body: JSON.stringify({
+          ids,
+          fields,
+        }),
+      }).then(this.#safeParseJson).then((result: CollectionResponse<WorkItem>) => {
         return result.value;
-      });
-  }
+    })}))}
 
   async #safeParseJson(response: Response) {
     if (response.status === 401) throw new Error("Authentication error");
@@ -82,7 +85,7 @@ export class ApiProxy {
 
 export interface Config {
   org: string;
-  project: string;
+  project: Array<string>;
   areaPath: string;
   email: string;
   pat: string;

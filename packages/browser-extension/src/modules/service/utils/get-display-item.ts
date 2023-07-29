@@ -24,6 +24,7 @@ export function getSearchDisplayItem(
   metadataMap: MetadataMap,
   item: DbWorkItem
 ): DisplayItem {
+  console.log('item',item);
   const iconUrl = metadataMap.get(item.workItemType)?.iconBlobUrl;
   const stateConfig = metadataMap.get(item.workItemType)?.states.get(item.state);
   const shortIterationPath = getShortIteration(item.iterationPath);

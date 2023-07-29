@@ -159,10 +159,12 @@ export const PopupWindow: React.FC = () => {
       </div>
 
       <ul className="work-item-list" ref={setVirtualListRef}>
+        
         {displayItems === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
         {displayItems?.length === 0 && <li className="work-item work-item--message">No result found</li>}
         {displayItems?.map((item, index) => {
-          const itemUrl = getItemUrl(config!.org, config!.project, item.id);
+          console.log(item);
+          //const itemUrl = getItemUrl(config!.org, config!.project, item.id);
           const isActive = index === activeIndex;
 
           return (
@@ -179,7 +181,7 @@ export const PopupWindow: React.FC = () => {
                   onCopy={copyDataHtml}
                   className="work-item__icon-interaction js-select-item-trigger js-select-item-start"
                   onClick={handleIconClick}
-                  data-copy-html={`<a href="${itemUrl}">${item.workItemType} ${item.id}: ${item.title}</a>`}
+                  //data-copy-html={`<a href="${itemUrl}">${item.workItemType} ${item.id}: ${item.title}</a>`}
                   title={`Type: ${item.workItemType} (Click to select type + ID + title)`}
                 >
                   {item.iconUrl ? (
@@ -211,9 +213,9 @@ export const PopupWindow: React.FC = () => {
                     onFocus={handleTextFocus}
                     onBlur={handleTextBlur}
                     onCopy={copyDataHtml}
-                    data-copy-html={`<a href="${itemUrl}">${item.title}</a>`}
+                    //data-copy-html={`<a href="${itemUrl}">${item.title}</a>`}
                     title={`Title: ${item.title} (Click to open, Alt + click to select)`}
-                    href={itemUrl}
+                    //href={itemUrl}
                     dangerouslySetInnerHTML={{ __html: item.titleHtml }}
                   />{" "}
                   {item.tags.length > 0 &&

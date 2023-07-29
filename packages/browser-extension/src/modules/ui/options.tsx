@@ -180,7 +180,7 @@ export const SetupForm: React.FC = () => {
 
   return (
     <div className="setup-window">
-      <h1>Setup</h1>
+      <h1>DEV SETUP</h1>
       <form className="setup-form" id="setup-form" onSubmit={handleSubmit} ref={formRef}>
         <section className="form-section">
           <div className="form-field">
