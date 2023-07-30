@@ -44,8 +44,11 @@ export class ApiProxy {
       body: JSON.stringify({ query: getRootQuery({ rootAreaPath: proj, isDeleted: true }) }),
     }).then(this.#safeParseJson)
     .then((result) => {
-      console.log('res2', result);
-      return (result.workItems as { id: number }[]).map((item) => item.id);
+      const itemIds = (result.workItems as { id: number }[]).map((item) => {
+        return item.id
+      });
+      console.log('itemIds in api call before return',itemIds)
+      return itemIds;
     });
     })
     
@@ -55,18 +58,19 @@ export class ApiProxy {
   async getWorkItemTypes(): Promise<any> {
     const patHeader = getPatHeader(this.#config);
 
-    await Promise.all(this.#config.project.map(async (proj) => {
+    this.#config.project.map((proj) => {
       return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
       headers: { ...patHeader },
     }).then(this.#safeParseJson)
     .then((result: CollectionResponse<WorkItemType>) => result.value);
-    }))
+    })
   }
 
   async getWorkItems(fields: string[], ids: number[]): Promise<any> {
     const patHeader = getPatHeader(this.#config);
-
-    await Promise.all(this.#config.project.map(async (proj) => {
+    console.log('inworkbatch', patHeader)
+    console.log('ids', ids)
+    this.#config.project.map((proj) => {
       return fetch(`https://dev.azure.com/${this.#config.org}/${proj}/_apis/wit/workitemsbatch?api-version=6.0`, {
         method: "post",
         headers: { ...patHeader, "Content-Type": "application/json"},
@@ -75,8 +79,9 @@ export class ApiProxy {
           fields,
         }),
       }).then(this.#safeParseJson).then((result: CollectionResponse<WorkItem>) => {
+        console.log('result',result)
         return result.value;
-    })}))}
+    })})}
 
   async #safeParseJson(response: Response) {
     if (response.status === 401) throw new Error("Authentication error");

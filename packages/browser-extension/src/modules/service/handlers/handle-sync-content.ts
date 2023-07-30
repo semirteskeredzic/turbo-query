@@ -68,6 +68,7 @@ export async function handleSyncContent(
 async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncContentResponse> {
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Fetching ids..." });
   const allIds = await api.getSinglePageWorkItemIds();
+  console.log('all ids in handle sync content', allIds);
   const idPages = getPages(allIds);
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds?.length} items, ${idPages?.length} pages` });
 
@@ -166,6 +167,7 @@ async function peekIsChanged(db: Db, api: ApiProxy) {
     const localItem = await db.workItems.get(ids[0]);
     if (!localItem) return true; // Local is missing. Treat as dirty.
 
+    console.log('ids in handler', ids);
     const remoteItems = await api.getWorkItems(ALL_FIELDS, ids);
     if (!remoteItems.length) return true; // Remote id should always exist. Treat as dirty to be safe
 
