@@ -31,12 +31,14 @@ export async function handleSyncContent(
 ): Promise<SyncContentResponse> {
   const count = await db.workItems.count();
   const api = new ApiProxy(request.config);
-  const syncStrategy = count ? incrementalSync.bind(null, db, server, api) : fullSync.bind(null, server, api, metadataManager);
+  console.log('requestconfig', request.config);
+  const syncStrategy = count ? incrementalSync.bind(null, db, server, api) : fullSync.bind(null, server, api);
 
   try {
     const summary = await syncStrategy();
-
+    console.log('summary', summary);
     if (request.rebuildIndex) {
+      console.log('inside if req');
       performance.mark("index");
       server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Building index..." });
       await indexManager.buildIndex({
@@ -46,14 +48,15 @@ export async function handleSyncContent(
       });
       console.log(`[sync] Built index ${performance.measure("import duration", "index").duration.toFixed(2)}ms`);
     } else if (isSummaryDirty(summary)) {
+      console.log('inside else if');
       performance.mark("index");
       server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
       await indexManager.updateIndex(summary);
       console.log(`[sync] Updated index ${performance.measure("import duration", "index").duration.toFixed(2)}ms`);
     }
-
+    console.log('after if');
     server.emit<SyncContentUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
-
+    console.log('after if summary', summary);
     return summary;
   } catch (e) {
     console.error(e);
